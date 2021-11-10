@@ -1,26 +1,108 @@
-'use strict';
-const catModel = require('../models/catModel');
+"use strict";
+const { getAllCats, getCat, addCat, modifyCat, deleteCat } = require("../models/catModel");
+const { httpError } = require("../utils/errors");
 
-// const cats = catModel.cats;
-const {cats, getCat} = catModel;
-
-const cat_list_get = (req, res) => {
-  res.json(cats);
+const cat_list_get = async (req, res, next) => {
+  try {
+    const cats = await getAllCats(next);
+    if (cats.length > 0) {
+      res.json(cats);
+    } else {
+      next("no cats found", 404);
+    }
+  } catch (e) {
+    console.log("cat_list_get error", e.message);
+    next(httpError("internal server error", 500));
+  }
 };
 
-const cat_get = (req, res) => {
-    //todo lähetä yksi kissa
-    const vastaus = getCat(req.params.id);
-    res.json(vastaus);
-}
+const cat_get = async (req, res, next) => {
+  try {
+    const vastaus = await getCat(req.params.id, next);
+    if (vastaus.length > 0) {
+      res.json(vastaus.pop());
+    } else {
+      next(httpError("no cat found", 404));
+    }
+  } catch (e) {
+    console.log("cat_get error", e.message);
+    next(httpError("internal server error", 500));
+  }
+};
 
-const cat_post = (req, res) => {
+const cat_post = async (req, res, next) => {
   console.log(req.body, req.file);
-  res.send('From this endpoint you can add cat.')
+  try {
+    const { name, birthdate, weight, owner } = req.body;
+    const tulos = await addCat(
+      name,
+      weight,
+      owner,
+      birthdate,
+      req.file.filename,
+      next
+    );
+    if (tulos.affectedRows > 0) {
+      res.json({
+        message: 'cat added',
+        cat_id: tulos.insertId,
+      });
+    } else {
+      next(httpError('No cat inserted', 400));
+    }
+  } catch (e) {
+    console.log('cat_post error', e.message);
+    next(httpError('internal server error', 500));
+  }
+};
+
+const cat_put = async (req, res, next) => {
+  console.log('cat_put', req.body);
+  try {
+    const { name, birthdate, weight, owner, id } = req.body;
+    const tulos = await modifyCat(
+      name,
+      weight,
+      owner,
+      birthdate,
+      id,
+      next
+    );
+    if (tulos.affectedRows > 0) {
+      res.json({
+        message: 'cat modified',
+        cat_id: tulos.insertId,
+      });
+    } else {
+      next(httpError('No cat modified', 400));
+    }
+  } catch (e) {
+    console.log('cat_put error', e.message);
+    next(httpError('internal server error', 500));
+  }
+};
+
+const cat_delete = async (req, res, next) => {
+  try {
+    const vastaus = await deleteCat(req.params.id, next);
+    if (vastaus.affectedRows > 0) {
+      res.json({
+        message: 'cat deleted',
+        cat_id: vastaus.insertId,
+      });
+    } else {
+      next(httpError("no cat found", 404));
+    }
+  } catch (e) {
+    console.log("cat_delete error", e.message);
+    next(httpError("internal server error", 500));
+  }
 };
 
 module.exports = {
   cat_list_get,
   cat_get,
   cat_post,
+  cat_put,
+  cat_delete,
 };
