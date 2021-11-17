@@ -32,7 +32,7 @@ const cat_get = async (req, res, next) => {
 };
 
 const cat_post = async (req, res, next) => {
-  console.log(req.body, req.file);
+  console.log(req.body, req.file, req.user);
   const errors = validationResult(req);
   if(!errors.isEmpty()){
     console.log('cat_post validation', errors.array());
@@ -44,11 +44,11 @@ const cat_post = async (req, res, next) => {
     next(err);
   }
   try {
-    const { name, birthdate, weight, owner } = req.body;
+    const { name, birthdate, weight } = req.body;
     const tulos = await addCat(
       name,
       weight,
-      owner,
+      req.user.user_id,
       birthdate,
       req.file.filename,
       next
@@ -70,13 +70,13 @@ const cat_post = async (req, res, next) => {
 const cat_put = async (req, res, next) => {
   console.log('cat_put', req.body);
   try {
-    const { name, birthdate, weight, owner, id } = req.body;
+    const { name, birthdate, weight } = req.body;
     const tulos = await modifyCat(
       name,
       weight,
-      owner,
+      req.user.user_id,
       birthdate,
-      id,
+      req.params.id,
       next
     );
     if (tulos.affectedRows > 0) {
@@ -95,7 +95,7 @@ const cat_put = async (req, res, next) => {
 
 const cat_delete = async (req, res, next) => {
   try {
-    const vastaus = await deleteCat(req.params.id, next);
+    const vastaus = await deleteCat(req.params.id, req.user.user_id, next);
     if (vastaus.affectedRows > 0) {
       res.json({
         message: 'cat deleted',

@@ -20,7 +20,7 @@ app.use(express.static('./uploads'));
 
 app.use(passport.initialize());
 
-app.use('./auth', authRoute);
+app.use('/auth', authRoute);
 
 app.use('/cat', passport.authenticate('jwt', {session: false}), catRoute);
 app.use('/user', passport.authenticate('jwt', {session: false}), userRoute);

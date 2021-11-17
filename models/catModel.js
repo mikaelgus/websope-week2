@@ -6,7 +6,7 @@ const promisePool = pool.promise();
 const getAllCats = async (next) => {
   try {
     // TODO: do the LEFT (or INNER) JOIN to get owner's name as ownername (from wop_user table).
-    const [rows] = await promisePool.execute('SELECT * FROM wop_cat');
+    const [rows] = await promisePool.execute('SELECT cat_id, wop_cat.name, weight, filename, birthdate, wop_user.name AS ownername from wop_cat JOIN wop_user on wop_cat.owner = wop_user.user_id');
     return rows; 
   } catch (e) {
     console.error('getAllCats error', e.message);
@@ -18,7 +18,7 @@ const getAllCats = async (next) => {
 const getCat = async (id, next) => {
   try {
     // TODO: do the LEFT (or INNER) JOIN to get owner's name as ownername (from wop_user table).
-    const [rows] = await promisePool.execute('SELECT * FROM wop_cat WHERE cat_id= ?', [id]
+    const [rows] = await promisePool.execute('SELECT cat_id, wop_cat.name, weight, filename, birthdate, wop_user.name AS ownername from wop_cat JOIN wop_user on wop_cat.owner = wop_user.user_id WHERE cat_id= ?;', [id]
     );
     return rows; 
   } catch (e) {
@@ -30,7 +30,7 @@ const getCat = async (id, next) => {
 const addCat = async (name, weight, owner, birthdate, filename, next) => {
   try {
     const [rows] = await promisePool.execute(
-      'INSERT INTO wop_cat (name, weight, owner, filename, birthdate) VALUES (?, ?, ?, ?, ?)',
+      'INSERT INTO wop_cat (name, weight, owner, filename, birthdate) VALUES (?, ?, ?, ?, ?);',
       [name, weight, owner, filename, birthdate]
     );
     return rows;
@@ -43,8 +43,8 @@ const addCat = async (name, weight, owner, birthdate, filename, next) => {
 const modifyCat = async (name, weight, owner, birthdate, cat_id, next) => {
   try {
     const [rows] = await promisePool.execute(
-      'UPDATE wop_cat SET name = ?, weight = ?, owner = ?, birthdate = ? WHERE cat_id = ?;',
-      [name, weight, owner, birthdate, cat_id]
+      'UPDATE wop_cat SET name = ?, weight = ?, birthdate = ? WHERE cat_id = ? AND owner = ?;',
+      [name, weight, birthdate, cat_id, owner]
     );
     return rows;
   } catch (e) {
@@ -53,9 +53,10 @@ const modifyCat = async (name, weight, owner, birthdate, cat_id, next) => {
   }
 };
 
-const deleteCat = async (id, next) => {
+const deleteCat = async (id, owner_id, next) => {
   try {
-    const [rows] = await promisePool.execute('DELETE FROM wop_cat WHERE cat_id= ?', [id]
+    const [rows] = await promisePool.execute('DELETE FROM wop_cat WHERE cat_id= ? AND owner= ?;', 
+    [id, owner_id]
     );
     return rows; 
   } catch (e) {
