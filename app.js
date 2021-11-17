@@ -4,6 +4,8 @@ const express = require('express');
 const catRoute = require('./routes/catRoute');
 const userRoute = require('./routes/userRoute');
 const cors = require('cors');
+const authRoute = require('./routes/authRoute');
+const passport = require('./utils/pass.js');
 const { httpError } = require('./utils/errors');
 
 
@@ -16,8 +18,12 @@ app.use(express.urlencoded({ extended: true })) // for parsing application/x-www
 
 app.use(express.static('./uploads'));
 
-app.use('/cat', catRoute);
-app.use('/user', userRoute);
+app.use(passport.initialize());
+
+app.use('./auth', authRoute);
+
+app.use('/cat', passport.authenticate('jwt', {session: false}), catRoute);
+app.use('/user', passport.authenticate('jwt', {session: false}), userRoute);
 
 app.use((req, res, next)=> {
     const err = httpError('Not found', 404);
@@ -25,9 +31,9 @@ app.use((req, res, next)=> {
 });
 app.use((err, req, res, next)=>{
     res.status(err.status || 500)
-    .json({error: 
-        {message: err.message || 'internal server horror', 
-        status: err.status || 500}});
+    .json({
+        message: err.message || 'internal server horror', 
+       });
 });
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));
