@@ -71,12 +71,18 @@ const cat_put = async (req, res, next) => {
   console.log('cat_put', req.body);
   try {
     const { name, birthdate, weight } = req.body;
+    /*let owner = req.user.user_id;
+    if(req.user.role === 0){
+      owner = req.body.owner;
+    }*/
+    const owner = req.user.role === 0 ? req.body.owner : req.user.user_id;
     const tulos = await modifyCat(
       name,
       weight,
-      req.user.user_id,
+      owner,
       birthdate,
       req.params.id,
+      req.user.role,
       next
     );
     if (tulos.affectedRows > 0) {
@@ -95,7 +101,7 @@ const cat_put = async (req, res, next) => {
 
 const cat_delete = async (req, res, next) => {
   try {
-    const vastaus = await deleteCat(req.params.id, req.user.user_id, next);
+    const vastaus = await deleteCat(req.params.id, req.user.user_id, req.user.role, next);
     if (vastaus.affectedRows > 0) {
       res.json({
         message: 'cat deleted',

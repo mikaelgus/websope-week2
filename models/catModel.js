@@ -1,5 +1,6 @@
 'use strict';
 const pool = require('../database/db');
+const { param } = require('../routes/catRoute');
 const { httpError } = require('../utils/errors');
 const promisePool = pool.promise();
 
@@ -40,11 +41,17 @@ const addCat = async (name, weight, owner, birthdate, filename, next) => {
   }
 };
 
-const modifyCat = async (name, weight, owner, birthdate, cat_id, next) => {
+const modifyCat = async (name, weight, owner, birthdate, cat_id, role, next) => {
+  let sql = 'UPDATE wop_cat SET name = ?, weight = ?, birthdate = ? WHERE cat_id = ? AND owner = ?';
+  let params = [name, weight, birthdate, cat_id, owner];
+  if(role === 0){
+    sql = 'UPDATE wop_cat SET name = ?, weight = ?, birthdate = ?, owner= ? WHERE cat_id = ?';
+    params = [name, weight, birthdate, owner, cat_id];
+  }
   try {
     const [rows] = await promisePool.execute(
-      'UPDATE wop_cat SET name = ?, weight = ?, birthdate = ? WHERE cat_id = ? AND owner = ?;',
-      [name, weight, birthdate, cat_id, owner]
+   sql,
+      params
     );
     return rows;
   } catch (e) {
@@ -53,10 +60,16 @@ const modifyCat = async (name, weight, owner, birthdate, cat_id, next) => {
   }
 };
 
-const deleteCat = async (id, owner_id, next) => {
+const deleteCat = async (id, owner_id, role, next) => {
+    let sql = 'DELETE FROM wop_cat WHERE cat_id= ? AND owner= ?';
+    let params = [id, owner_id];
+    if(role === 0){
+      sql = 'DELETE FROM wop_cat WHERE cat_id= ?';
+      params = [id];
+    }
   try {
-    const [rows] = await promisePool.execute('DELETE FROM wop_cat WHERE cat_id= ? AND owner= ?;', 
-    [id, owner_id]
+    const [rows] = await promisePool.execute(sql, 
+    params
     );
     return rows; 
   } catch (e) {
