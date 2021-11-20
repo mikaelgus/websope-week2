@@ -6,7 +6,7 @@ const { httpError } = require("../utils/errors");
 const login = (req, res, next) => {
   // TODO: add passport authenticate
   passport.authenticate("local", { session: false }, (err, user, info) => {
-    console.log("login info", err, user, info);
+    console.log("from login info", err, user, info);
     if (err || !user) {
       next(httpError(info.message, 400));
       return;
