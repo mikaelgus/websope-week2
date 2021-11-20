@@ -33,7 +33,7 @@ passport.use(
     new JWTStrategy(
       {
         jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-        secretOrKey: "y6!gtV:)YU7$67j",
+        secretOrKey: process.env.JWT_SECRET,
       },
       (jwtPayload, done) => {
         console.log('payload', jwtPayload);
