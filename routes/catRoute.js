@@ -24,6 +24,7 @@ router
   .route("/")
   .get(cat_list_get)
   .post(
+    //passport.authenticate('jwt', {session: false}),
     upload.single("cat"),
     body("name").notEmpty().escape(),
     body("birthdate").isDate(),
